@@ -81,7 +81,7 @@ const Form = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [page, parentId, fetchPosts]);
+  }, [page, parentId]);
 
   return (
     <>
