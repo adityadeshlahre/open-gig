@@ -1,5 +1,5 @@
 {
-  "name": "quick-start",
+  "name": "og-assignment",
   "private": true,
   "scripts": {
     "build": "turbo build",

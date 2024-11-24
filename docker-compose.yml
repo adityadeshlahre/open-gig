@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: og-assignment-full:latest
-    container_name: quick-start-full
+    container_name: og-assignment-full
     expose:
       - 3000
       - 5173
