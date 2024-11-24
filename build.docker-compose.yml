@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile.build
-    image: quick-start-web:latest
-    container_name: quick-start-web
+    image: og-assignment-web:latest
+    container_name: og-assignment-web
     expose:
       - 5173
     ports:
@@ -18,8 +18,8 @@ services:
     build:
       context: .
       dockerfile: ./apps/server/Dockerfile.build
-    image: quick-start-server:latest
-    container_name: quick-start-server
+    image: og-assignment-server:latest
+    container_name: og-assignment-server
     expose:
       - 3000
     ports:

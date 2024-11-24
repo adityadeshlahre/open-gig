@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: quick-start-full:latest
+    image: og-assignment-full:latest
     container_name: quick-start-full
     expose:
       - 3000
