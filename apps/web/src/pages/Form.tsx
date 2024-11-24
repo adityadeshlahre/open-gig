@@ -6,7 +6,22 @@ const Form = () => {
   const [content, setContent] = useState<string>("");
   const [reply, setReply] = useState<string>("");
   const [parentId, setParentId] = useState<string>("");
-  const [posts, setPosts] = useState<any>([]);
+  const [posts, setPosts] = useState<
+    {
+      id: string;
+      content: string;
+      parentId: string;
+      createdAt: Date;
+      updatedAt: Date;
+      replies: {
+        id: string;
+        content: string;
+        createdAt: string;
+        updatedAt: string;
+        parentId: string;
+      }[];
+    }[]
+  >([]);
   const [page, setPage] = useState<number>(1);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,7 +72,7 @@ const Form = () => {
         },
       })
       .then((response) => {
-        setPosts(response.data.posts);
+        setPosts(response.data.posts || []);
       })
       .catch((error) => {
         console.error("Error fetching posts:", error);
@@ -66,7 +81,7 @@ const Form = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [page, parentId]);
+  }, [page, parentId, fetchPosts]);
 
   return (
     <>
@@ -94,66 +109,89 @@ const Form = () => {
       </form>
 
       <div className="posts-container">
-        {posts.length > 0 ? (
-          posts.map((post: any) => (
-            <div
-              key={post.id}
-              className="post-item border p-2 my-2 rounded bg-gray-100"
-            >
-              <p>
-                <strong>ID:</strong> {post.id}
-              </p>
-              <p>
-                <strong>Content:</strong> {post.content}
-              </p>
-              <p>
-                <strong>Parent ID:</strong> {post.parentId || "None"}
-              </p>
-              <p>
-                <strong>Created At:</strong>{" "}
-                {new Date(post.createdAt).toLocaleString()}
-              </p>
+        {posts?.length > 0 ? (
+          posts.map(
+            (post: {
+              id: string;
+              content: string;
+              parentId: string;
+              createdAt: Date;
+              updatedAt: Date;
+              replies: {
+                id: string;
+                content: string;
+                createdAt: string;
+                updatedAt: string;
+                parentId: string;
+              }[];
+            }) => (
+              <div
+                key={post.id}
+                className="post-item border p-2 my-2 rounded bg-gray-100"
+              >
+                <p>
+                  <strong>ID:</strong> {post.id}
+                </p>
+                <p>
+                  <strong>Content:</strong> {post.content}
+                </p>
+                <p>
+                  <strong>Parent ID:</strong> {post.parentId || "None"}
+                </p>
+                <p>
+                  <strong>Created At:</strong>{" "}
+                  {new Date(post.createdAt).toLocaleString()}
+                </p>
 
-              <div className="reply-section">
-                <input
-                  type="text"
-                  value={reply}
-                  placeholder="Write a reply"
-                  onChange={(e) => setReply(e.target.value)}
-                  className="border-2 border-neutral-900 mb-2"
-                />
-                <button
-                  onClick={() => handleReplySubmit(post.id)}
-                  className="border-2 border-neutral-900"
-                >
-                  Reply
-                </button>
-              </div>
-
-              {post.replies && post.replies.length > 0 && (
-                <div className="replies-list mt-2">
-                  <h4>Replies:</h4>
-                  {post.replies.map((reply: any) => (
-                    <div
-                      key={reply.id}
-                      className="reply-item border p-2 my-1 rounded bg-gray-200"
-                    >
-                      <p>
-                        <strong>Reply ID:</strong> {reply.id}
-                      </p>
-                      <p>
-                        <strong>Content:</strong> {reply.content}
-                      </p>
-                      <p>
-                        <strong>Created At:</strong>{" "}
-                        {new Date(reply.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
+                <div className="reply-section">
+                  <input
+                    type="text"
+                    value={reply}
+                    placeholder="Write a reply"
+                    onChange={(e) => setReply(e.target.value)}
+                    className="border-2 border-neutral-900 mb-2"
+                  />
+                  <button
+                    onClick={() => handleReplySubmit(post.id)}
+                    className="border-2 border-neutral-900"
+                  >
+                    Reply
+                  </button>
                 </div>
-              )}
-            </div>
-          ))
+
+                {post.replies && post.replies.length > 0 && (
+                  <div className="replies-list mt-2">
+                    <h4>Replies:</h4>
+                    {post.replies.map(
+                      (reply: {
+                        id: string;
+                        content: string;
+                        createdAt: string;
+                        updatedAt: string;
+                        parentId: string;
+                      }) => (
+                        <div
+                          key={reply.id}
+                          className="reply-item border p-2 my-1 rounded bg-gray-200"
+                        >
+                          <p>
+                            <strong>Reply ID:</strong> {reply.id}
+                          </p>
+                          <p>
+                            <strong>Content:</strong> {reply.content}
+                          </p>
+                          <p>
+                            <strong>Created At:</strong>{" "}
+                            {new Date(reply.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          )
         ) : (
           <p>No posts available</p>
         )}
