@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://opensource:opensource@localhost:5432/fasoshop"
+}
+
+model Post {
+  id       String @id @default(uuid()) @db.Uuid
+  content  String 
+  createdAt DateTime
+  updatedAt DateTime
+  parentId String
+  replies    Reply[]  @relation("PostReplies")
+}
+
+model Reply {
+  id         String   @id @default(uuid()) @db.Uuid
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  parentId   String   @db.Uuid
+  post       Post     @relation("PostReplies", fields: [parentId], references: [id])
+}
