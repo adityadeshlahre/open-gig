@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { User, UserSchema } from "@repo/types";
 import { prisma } from "@repo/db";
 
 const app = express();
@@ -13,45 +12,54 @@ app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello World!" });
 });
 
-// app.get("/posts", async (req, res) => {
-//   const { page = 1, pageSize = 10 } = req.query;
+app.get("/posts", async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-//   try {
-//     const rootPosts = await prisma.post.findMany({
-//       where: {1
-//         parentId: null, // Only root posts
-//       },
-//       skip: (page - 1) * pageSize,
-//       take: parseInt(pageSize),
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+  try {
+    const rootPosts = await prisma.post.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        replies: true,
+      },
+    });
 
-//     res.json({
-//       page: parseInt(page),
-//       pageSize: parseInt(pageSize),
-//       posts: rootPosts,
-//     });
-//   } catch (error) {
-//     console.error("Error retrieving root posts:", error);
-//     res.status(500).json({ error: "Failed to retrieve root posts" });
-//   }
-// });
+    res.json({
+      page: page,
+      pageSize: pageSize,
+      posts: rootPosts,
+    });
+  } catch (error) {
+    console.error("Error retrieving root posts:", error);
+    res.status(500).json({ error: "Failed to retrieve root posts" });
+  }
+});
 
 app.post("/post", async (req: Request, res: Response) => {
   const { content, parentId } = req.body;
 
+  if (!content) {
+    return res.status(400).json({ error: "Content is required." });
+  }
+
   try {
     const newPost = await prisma.post.create({
       data: {
-        content: content,
+        content: content.trim(),
         parentId: parentId || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
     res.status(201).json({
-      message: "Post created successfully",
+      message: parentId
+        ? "Reply added successfully"
+        : "Post created successfully",
       post: newPost,
     });
   } catch (error) {
@@ -62,14 +70,51 @@ app.post("/post", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/posts", async (req: Request, res: Response) => {
-  try {
-    const users: User[] = await prisma.post.findMany();
+app.post("/reply", async (req: Request, res: Response) => {
+  const { content, parentId } = req.body;
 
-    res.status(201).json({ users: users });
+  if (!content || !parentId) {
+    return res
+      .status(400)
+      .json({ error: "Content and parentId are required." });
+  }
+
+  try {
+    const parentPost = await prisma.post.findUnique({
+      where: { id: parentId },
+    });
+
+    if (!parentPost) {
+      return res.status(404).json({ error: "Parent post not found." });
+    }
+
+    const newReply = await prisma.reply.create({
+      data: {
+        content: content.trim(),
+        parentId: parentId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    await prisma.post.update({
+      where: { id: parentId },
+      data: {
+        replies: {
+          connect: { id: newReply.id },
+        },
+      },
+    });
+
+    res.status(201).json({
+      message: "Reply added successfully",
+      reply: newReply,
+    });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Fething user error" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while adding the reply." });
   }
 });
 

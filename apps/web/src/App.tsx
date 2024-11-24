@@ -8,8 +8,8 @@ function App() {
       <div>
         <Router>
           <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/form" element={<Form />} />
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Form />} />
           </Routes>
         </Router>
       </div>
